@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo "🚀 Meeting App Deployment Helper"
+echo "================================"
+echo ""
+
+echo "📋 Prerequisites:"
+echo "1. Make sure your code is pushed to GitHub"
+echo "2. Have a Railway/Render account ready"
+echo ""
+
+echo "🎯 Recommended: Railway (Fastest)"
+echo "1. Go to https://railway.app"
+echo "2. Sign up with GitHub"
+echo "3. Click 'New Project'"
+echo "4. Select 'Deploy from GitHub repo'"
+echo "5. Select this repository"
+echo "6. Click 'Deploy'"
+echo ""
+
+echo "🆓 Alternative: Render (Free)"
+echo "1. Go to https://render.com"
+echo "2. Sign up with GitHub"
+echo "3. Click 'New +' → 'Web Service'"
+echo "4. Connect your GitHub repo"
+echo "5. Configure:"
+echo "   - Name: meeting-app"
+echo "   - Environment: Node"
+echo "   - Build Command: npm install && npm run build"
+echo "   - Start Command: npm run start"
+echo "6. Click 'Create Web Service'"
+echo ""
+
+echo "✅ Your app will be live in 2-5 minutes!"
+echo ""
+
+echo "🧪 Testing Checklist:"
+echo "- [ ] Create a meeting"
+echo "- [ ] Share the meeting link"
+echo "- [ ] Join from another device"
+echo "- [ ] Test audio/video controls"
+echo "- [ ] Test chat functionality"
+echo "- [ ] Test with multiple participants"
+echo ""
+
+echo "📱 Test on:"
+echo "- Desktop browsers (Chrome, Firefox, Safari)"
+echo "- Mobile browsers (iPhone Safari, Android Chrome)"
+echo "- Tablets"
+echo ""
+
+echo "🔗 Once deployed, share your URL with others to test!" 
