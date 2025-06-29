@@ -18,10 +18,17 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
+
+// Determine CORS origin
+const corsOrigin = process.env.NODE_ENV === 'production' 
+  ? true  // Allow all origins in production
+  : (process.env.FRONTEND_URL || "http://localhost:5173");
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST"]
+    origin: corsOrigin,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -30,7 +37,7 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP for development
 }));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: corsOrigin,
   credentials: true
 }));
 
@@ -72,7 +79,7 @@ const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(`🌐 CORS Origin: ${corsOrigin}`);
   console.log(`📊 Using in-memory storage (data will be lost on server restart)`);
   console.log(`📁 Serving static files from: ${path.join(__dirname, '../dist')}`);
 }); 

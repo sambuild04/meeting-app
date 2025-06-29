@@ -10,7 +10,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "npm run build && node server/index.js"
+    "start": "node server/index.js"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
