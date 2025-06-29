@@ -35,16 +35,20 @@ class MemoryStorage {
       }
     };
 
+    // Store the meeting first
+    this.meetings.set(id, meeting);
+
     // Add host as first participant
     const hostId = this.addParticipant(id, {
       name: meetingData.hostName,
       isHost: true
     });
 
+    // Update the meeting with hostId
     meeting.hostId = hostId;
     this.meetings.set(id, meeting);
     
-    console.log(`Created meeting: ${id}`);
+    console.log(`Created meeting: ${id} with host: ${meetingData.hostName}`);
     return meeting;
   }
 
