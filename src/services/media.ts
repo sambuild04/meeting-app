@@ -44,15 +44,27 @@ class MediaService {
   }
 
   async requestBothPermissions(): Promise<MediaStreams> {
+    const result: MediaStreams = { audio: null, video: null };
+    
     try {
-      const [audioStream, videoStream] = await Promise.all([
-        this.requestAudioPermission(),
-        this.requestVideoPermission()
-      ]);
-      return { audio: audioStream, video: videoStream };
+      // Try to get audio permission
+      try {
+        result.audio = await this.requestAudioPermission();
+      } catch (error) {
+        console.warn('Audio permission denied:', error);
+      }
+
+      // Try to get video permission
+      try {
+        result.video = await this.requestVideoPermission();
+      } catch (error) {
+        console.warn('Video permission denied:', error);
+      }
+
+      return result;
     } catch (error) {
-      console.error('Error requesting both permissions:', error);
-      return { audio: null, video: null };
+      console.error('Error requesting media permissions:', error);
+      return result;
     }
   }
 

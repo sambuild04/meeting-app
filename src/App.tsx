@@ -166,11 +166,26 @@ function App() {
         // Update URL
         window.location.hash = `#/meeting/${meetingId}`;
 
-        // Request media permissions
+        // Request media permissions with better error handling
         try {
-          await mediaService.requestBothPermissions();
+          console.log('Requesting media permissions...');
+          const streams = await mediaService.requestBothPermissions();
+          
+          if (!streams.audio && !streams.video) {
+            console.warn('No media permissions granted');
+            setError('Camera and microphone access denied. You can still participate in the meeting.');
+          } else if (!streams.audio) {
+            console.warn('Audio permission denied');
+            setError('Microphone access denied. You can still participate with video.');
+          } else if (!streams.video) {
+            console.warn('Video permission denied');
+            setError('Camera access denied. You can still participate with audio.');
+          } else {
+            console.log('Media permissions granted successfully');
+          }
         } catch (error) {
           console.warn('Media permissions not granted:', error);
+          setError('Media permissions not granted. You can still participate in the meeting.');
         }
 
         // Join Socket.IO room
@@ -196,6 +211,7 @@ function App() {
     setError(null);
 
     try {
+      // Only call the API to start the meeting, let Socket.IO handle the real-time updates
       const response = await apiService.startMeeting(currentMeeting.id, currentUser.id);
       
       if (response.success) {
@@ -205,13 +221,8 @@ function App() {
           isActive: response.meeting.isActive
         } : null);
 
-        // Emit Socket.IO event
-        if (socketService.connected) {
-          socketService.emit('startMeeting', {
-            meetingId: currentMeeting.id,
-            hostId: currentUser.id
-          });
-        }
+        // Don't emit Socket.IO event here - the API call will trigger the server-side Socket.IO notification
+        console.log('Meeting started successfully');
       }
     } catch (error) {
       console.error('Error starting meeting:', error);

@@ -231,6 +231,16 @@ router.post('/:meetingId/start', async (req, res) => {
 
     const updatedMeeting = memoryStorage.startMeeting(meetingId, hostId);
 
+    // Emit Socket.IO event to notify all participants
+    const io = req.app.get('io');
+    if (io) {
+      io.to(meetingId).emit('meetingStarted', {
+        meetingId: updatedMeeting.id,
+        startedAt: updatedMeeting.startedAt,
+        duration: updatedMeeting.duration
+      });
+    }
+
     res.json({
       success: true,
       meeting: {

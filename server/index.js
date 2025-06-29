@@ -75,6 +75,9 @@ app.get('*', (req, res) => {
 // Socket.IO setup
 setupSocketHandlers(io);
 
+// Make Socket.IO instance available to routes
+app.set('io', io);
+
 const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
