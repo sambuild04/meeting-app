@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Video, Clock, Users, Link, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { MeetingSettings } from '../types/meeting';
 
@@ -7,13 +7,15 @@ interface HomePageProps {
   onJoinMeeting: (meetingId: string, name: string) => void;
   loading?: boolean;
   error?: string | null;
+  pendingMeetingId?: string;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ 
   onCreateMeeting, 
   onJoinMeeting, 
   loading = false, 
-  error = null 
+  error = null,
+  pendingMeetingId
 }) => {
   const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
   const [meetingSettings, setMeetingSettings] = useState<MeetingSettings>({
@@ -22,6 +24,14 @@ export const HomePage: React.FC<HomePageProps> = ({
     hostName: ''
   });
   const [joinData, setJoinData] = useState({ meetingId: '', name: '' });
+
+  // Auto-switch to join tab and fill meeting ID if there's a pending meeting
+  useEffect(() => {
+    if (pendingMeetingId) {
+      setActiveTab('join');
+      setJoinData(prev => ({ ...prev, meetingId: pendingMeetingId }));
+    }
+  }, [pendingMeetingId]);
 
   const handleCreateMeeting = () => {
     if (!meetingSettings.title.trim() || !meetingSettings.hostName.trim()) return;

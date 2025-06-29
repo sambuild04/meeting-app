@@ -5,6 +5,7 @@ import { MeetingRoom } from './components/MeetingRoom';
 import { Meeting, Participant, MeetingSettings } from './types/meeting';
 import { apiService } from './services/api';
 import { socketService } from './services/socket';
+import { mediaService } from './services/media';
 
 type AppState = 'home' | 'link' | 'meeting';
 
@@ -37,20 +38,39 @@ function App() {
   useEffect(() => {
     const handleHashChange = async () => {
       const hash = window.location.hash;
+      
       if (hash.startsWith('#/meeting/')) {
         const meetingId = hash.substring(10);
-        // Check if we already have this meeting
-        if (!currentMeeting || currentMeeting.id !== meetingId) {
-          // We're joining a meeting via link - stay on home to collect name
-          if (!currentUser) {
-            setAppState('home');
-            return;
+        
+        // If we don't have a current user, we need to collect their name first
+        if (!currentUser) {
+          setAppState('home');
+          // Store the meeting ID to join after name is provided
+          if (meetingSettings) {
+            setMeetingSettings({ ...meetingSettings, pendingMeetingId: meetingId });
+          } else {
+            setMeetingSettings({ title: '', duration: 30, hostName: '', pendingMeetingId: meetingId });
           }
+          return;
         }
+        
+        // If we have a user but different meeting, join the new meeting
+        if (!currentMeeting || currentMeeting.id !== meetingId) {
+          // Join the meeting with current user's name
+          await handleJoinMeeting(meetingId, currentUser.name);
+          return;
+        }
+        
+        // Same meeting, just ensure we're in meeting state
+        setAppState('meeting');
+        
       } else if (hash.startsWith('#/link/')) {
         const meetingId = hash.substring(7);
         if (currentMeeting && currentMeeting.id === meetingId) {
           setAppState('link');
+        } else {
+          // Someone clicked a link but we don't have this meeting loaded
+          setAppState('home');
         }
       } else {
         setAppState('home');
@@ -61,7 +81,7 @@ function App() {
     window.addEventListener('hashchange', handleHashChange);
     
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [currentMeeting, currentUser]);
+  }, [currentMeeting, currentUser, meetingSettings]);
 
   const handleCreateMeeting = async (settings: MeetingSettings) => {
     setLoading(true);
@@ -140,8 +160,18 @@ function App() {
         setCurrentUser(participant);
         setAppState('meeting');
         
+        // Clear any pending meeting ID
+        setMeetingSettings(prev => prev ? { ...prev, pendingMeetingId: undefined } : null);
+        
         // Update URL
         window.location.hash = `#/meeting/${meetingId}`;
+
+        // Request media permissions
+        try {
+          await mediaService.requestBothPermissions();
+        } catch (error) {
+          console.warn('Media permissions not granted:', error);
+        }
 
         // Join Socket.IO room
         if (socketService.connected) {
@@ -224,6 +254,9 @@ function App() {
     } catch (error) {
       console.error('Error ending meeting:', error);
     } finally {
+      // Clean up media streams
+      mediaService.stopAll();
+      
       setCurrentMeeting(null);
       setCurrentUser(null);
       setMeetingSettings(null);
@@ -250,6 +283,13 @@ function App() {
         
         setCurrentUser(updatedUser);
         setCurrentMeeting(prev => prev ? { ...prev, participants: updatedParticipants } : null);
+
+        // Control actual audio stream
+        if (updatedUser.isMuted) {
+          mediaService.muteAudio();
+        } else {
+          mediaService.unmuteAudio();
+        }
 
         // Emit Socket.IO event
         if (socketService.connected) {
@@ -282,6 +322,13 @@ function App() {
         
         setCurrentUser(updatedUser);
         setCurrentMeeting(prev => prev ? { ...prev, participants: updatedParticipants } : null);
+
+        // Control actual video stream
+        if (updatedUser.isCameraOn) {
+          mediaService.enableVideo();
+        } else {
+          mediaService.disableVideo();
+        }
 
         // Emit Socket.IO event
         if (socketService.connected) {
@@ -416,6 +463,7 @@ function App() {
       onJoinMeeting={handleJoinMeeting}
       loading={loading}
       error={error}
+      pendingMeetingId={meetingSettings?.pendingMeetingId}
     />
   );
 }

@@ -21,4 +21,5 @@ export interface MeetingSettings {
   title: string;
   duration: number;
   hostName: string;
+  pendingMeetingId?: string;
 }
