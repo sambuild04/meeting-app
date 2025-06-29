@@ -76,6 +76,12 @@ class MemoryStorage {
     const meeting = this.meetings.get(meetingId);
     if (!meeting) return null;
 
+    // Prevent duplicate participants by name and isHost
+    const existing = meeting.participants.find(p => p.name === participantData.name && p.isHost === !!participantData.isHost);
+    if (existing) {
+      return existing.id;
+    }
+
     const participantId = Date.now().toString();
     const participant = {
       id: participantId,

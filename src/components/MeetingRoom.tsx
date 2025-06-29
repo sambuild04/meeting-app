@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Mic, MicOff, Video, VideoOff, Phone, Users, 
   Settings, MoreHorizontal, Clock, User, Play, AlertCircle 
 } from 'lucide-react';
 import { formatTime } from '../utils/meetingUtils';
 import { Meeting, Participant } from '../types/meeting';
+import { mediaService } from '../services/media';
 
 interface MeetingRoomProps {
   meeting: Meeting;
@@ -63,52 +64,71 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
     return 'grid-cols-3';
   };
 
-  const VideoPlaceholder: React.FC<{ participant: Participant; isLarge?: boolean }> = ({ 
+  const VideoPlaceholder: React.FC<{ participant: Participant; isLarge?: boolean; isLocal?: boolean }> = ({ 
     participant, 
-    isLarge = false 
-  }) => (
-    <div className={`relative bg-gray-900 rounded-lg overflow-hidden ${
-      isLarge ? 'aspect-video' : 'aspect-video'
-    }`}>
-      {participant.isCameraOn ? (
-        <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <User className="w-8 h-8 text-white" />
+    isLarge = false,
+    isLocal = false
+  }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+      if (isLocal && participant.isCameraOn && videoRef.current) {
+        const stream = mediaService.getVideoStream();
+        if (stream) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      }
+    }, [isLocal, participant.isCameraOn]);
+
+    if (isLocal && participant.isCameraOn) {
+      return <video ref={videoRef} autoPlay muted className={`w-full h-full object-cover rounded-lg ${isLarge ? 'aspect-video' : ''}`} />;
+    }
+
+    return (
+      <div className={`relative bg-gray-900 rounded-lg overflow-hidden ${
+        isLarge ? 'aspect-video' : 'aspect-video'
+      }`}>
+        {participant.isCameraOn ? (
+          <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-2">
-              <User className="w-6 h-6 text-gray-300" />
+        ) : (
+          <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                <User className="w-6 h-6 text-gray-300" />
+              </div>
+              <p className="text-white text-sm font-medium">{participant.name}</p>
             </div>
-            <p className="text-white text-sm font-medium">{participant.name}</p>
           </div>
-        </div>
-      )}
-      
-      {/* Participant Info */}
-      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-        <div className="flex items-center space-x-1">
-          <span className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-            {participant.name}
-            {participant.isHost && ' (Host)'}
-          </span>
-        </div>
-        <div className="flex items-center space-x-1">
-          {!participant.isMuted ? (
-            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-              <Mic className="w-3 h-3 text-white" />
-            </div>
-          ) : (
-            <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-              <MicOff className="w-3 h-3 text-white" />
-            </div>
-          )}
+        )}
+        
+        {/* Participant Info */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <span className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+              {participant.name}
+              {participant.isHost && ' (Host)'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-1">
+            {!participant.isMuted ? (
+              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <Mic className="w-3 h-3 text-white" />
+              </div>
+            ) : (
+              <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                <MicOff className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="h-screen bg-gray-900 flex flex-col">
@@ -184,6 +204,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
                 key={participant.id} 
                 participant={participant}
                 isLarge={meeting.participants.length === 1}
+                isLocal={participant.id === currentUser.id}
               />
             ))}
           </div>
