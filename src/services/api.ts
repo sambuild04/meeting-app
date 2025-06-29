@@ -67,7 +67,16 @@ class ApiService {
         createdAt: string;
         participants: any[];
         isActive: boolean;
+        hostId: string;
       };
+      host: {
+        id: string;
+        name: string;
+        isHost: boolean;
+        isMuted: boolean;
+        isCameraOn: boolean;
+        joinedAt: string;
+      } | null;
     }>('/meetings', {
       method: 'POST',
       body: JSON.stringify(data),

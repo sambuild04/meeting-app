@@ -80,10 +80,19 @@ function App() {
           isActive: response.meeting.isActive
         };
 
-        const host = meeting.participants.find(p => p.isHost);
-        if (!host) {
+        // Use the host information from the API response
+        if (!response.host) {
           throw new Error('Host not found in meeting');
         }
+
+        const host: Participant = {
+          id: response.host.id,
+          name: response.host.name,
+          isHost: response.host.isHost,
+          isMuted: response.host.isMuted,
+          isCameraOn: response.host.isCameraOn,
+          joinedAt: new Date(response.host.joinedAt)
+        };
 
         setCurrentMeeting(meeting);
         setCurrentUser(host);

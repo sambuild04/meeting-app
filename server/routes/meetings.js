@@ -27,6 +27,9 @@ router.post('/', async (req, res) => {
       hostName
     });
 
+    // Find the host participant
+    const host = meeting.participants.find(p => p.isHost);
+
     res.status(201).json({
       success: true,
       meeting: {
@@ -35,8 +38,17 @@ router.post('/', async (req, res) => {
         duration: meeting.duration,
         createdAt: meeting.createdAt,
         participants: meeting.participants,
-        isActive: meeting.isActive
-      }
+        isActive: meeting.isActive,
+        hostId: meeting.hostId
+      },
+      host: host ? {
+        id: host.id,
+        name: host.name,
+        isHost: host.isHost,
+        isMuted: host.isMuted,
+        isCameraOn: host.isCameraOn,
+        joinedAt: host.joinedAt
+      } : null
     });
   } catch (error) {
     console.error('Error creating meeting:', error);
