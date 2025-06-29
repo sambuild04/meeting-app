@@ -1,4 +1,20 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Auto-detect the API URL based on environment
+const getApiUrl = () => {
+  // If VITE_API_URL is set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In production, use the current domain
+  if (import.meta.env.PROD) {
+    return `${window.location.origin}/api`;
+  }
+  
+  // In development, use localhost
+  return 'http://localhost:3001/api';
+};
+
+const API_BASE_URL = getApiUrl();
 
 class ApiService {
   private baseUrl: string;

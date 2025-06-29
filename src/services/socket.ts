@@ -1,6 +1,22 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+// Auto-detect the socket URL based on environment
+const getSocketUrl = () => {
+  // If VITE_SOCKET_URL is set, use it
+  if (import.meta.env.VITE_SOCKET_URL) {
+    return import.meta.env.VITE_SOCKET_URL;
+  }
+  
+  // In production, use the current domain
+  if (import.meta.env.PROD) {
+    return window.location.origin;
+  }
+  
+  // In development, use localhost
+  return 'http://localhost:3001';
+};
+
+const SOCKET_URL = getSocketUrl();
 
 export interface SocketEvents {
   // Client to Server
@@ -55,6 +71,8 @@ class SocketService {
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
+        console.log('Connecting to Socket.IO server at:', SOCKET_URL);
+        
         this.socket = io(SOCKET_URL, {
           transports: ['websocket', 'polling'],
           timeout: 20000,
