@@ -70,19 +70,34 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
     isLocal = false
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const [cameraError, setCameraError] = useState<string | null>(null);
 
     useEffect(() => {
       if (isLocal && participant.isCameraOn && videoRef.current) {
         const stream = mediaService.getVideoStream();
-        if (stream) {
+        console.log('Attaching video stream:', stream);
+        if (stream && stream.getVideoTracks().length > 0) {
           videoRef.current.srcObject = stream;
           videoRef.current.play();
+          setCameraError(null);
+        } else {
+          setCameraError('No camera found or permission denied.');
+          console.warn('No video tracks found in stream');
         }
       }
     }, [isLocal, participant.isCameraOn]);
 
     if (isLocal && participant.isCameraOn) {
-      return <video ref={videoRef} autoPlay muted className={`w-full h-full object-cover rounded-lg ${isLarge ? 'aspect-video' : ''}`} />;
+      return (
+        <div className={`relative w-full h-full ${isLarge ? 'aspect-video' : ''}`}>
+          <video ref={videoRef} autoPlay muted className="w-full h-full object-cover rounded-lg" style={{ border: '2px solid red' }} />
+          {cameraError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 text-white text-lg font-semibold rounded-lg">
+              {cameraError}
+            </div>
+          )}
+        </div>
+      );
     }
 
     return (
