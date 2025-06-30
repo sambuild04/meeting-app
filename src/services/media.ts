@@ -110,6 +110,12 @@ class MediaService {
   disableVideo(): void {
     if (this.videoTrack) {
       this.videoTrack.enabled = false;
+      this.videoTrack.stop();
+      this.videoTrack = null;
+    }
+    if (this.videoStream) {
+      this.videoStream.getTracks().forEach(track => track.stop());
+      this.videoStream = null;
     }
   }
 

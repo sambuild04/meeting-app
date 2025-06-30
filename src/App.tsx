@@ -319,14 +319,28 @@ function App() {
     if (!currentUser || !currentMeeting) return;
     
     try {
+      let cameraOn = !currentUser.isCameraOn;
+      let streamAvailable = false;
+
+      if (cameraOn) {
+        // Try to get video stream
+        const stream = await mediaService.requestVideoPermission();
+        streamAvailable = !!(stream && stream.getVideoTracks().length > 0);
+        if (!streamAvailable) {
+          cameraOn = false;
+        }
+      } else {
+        mediaService.disableVideo();
+      }
+
       const response = await apiService.updateParticipant(
         currentMeeting.id,
         currentUser.id,
-        { isCameraOn: !currentUser.isCameraOn }
+        { isCameraOn: cameraOn }
       );
 
       if (response.success) {
-        const updatedUser = { ...currentUser, isCameraOn: !currentUser.isCameraOn };
+        const updatedUser = { ...currentUser, isCameraOn: cameraOn };
         const updatedParticipants = currentMeeting.participants.map(p => 
           p.id === currentUser.id ? updatedUser : p
         );
@@ -335,7 +349,7 @@ function App() {
         setCurrentMeeting(prev => prev ? { ...prev, participants: updatedParticipants } : null);
 
         // Control actual video stream
-        if (updatedUser.isCameraOn) {
+        if (cameraOn && streamAvailable) {
           mediaService.enableVideo();
         } else {
           mediaService.disableVideo();
