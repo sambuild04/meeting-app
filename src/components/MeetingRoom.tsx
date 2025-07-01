@@ -199,7 +199,7 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
         </div>
       )}
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex" style={{ paddingBottom: '88px' }}>
         {/* Main Video Area */}
         <div className="flex-1 p-6">
           {!meeting.isActive && (
@@ -267,7 +267,17 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-800 px-6 py-4 flex items-center justify-center space-x-4">
+      <div
+        className="bg-gray-800 px-6 py-4 flex items-center justify-center space-x-4"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          zIndex: 50,
+          borderTop: '1px solid #222',
+        }}
+      >
         <button
           onClick={onToggleMute}
           disabled={loading}
