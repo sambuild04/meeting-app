@@ -89,8 +89,17 @@ export const MeetingRoom: React.FC<MeetingRoomProps> = ({
 
     if (isLocal && participant.isCameraOn) {
       return (
-        <div className={`relative w-full h-full ${isLarge ? 'aspect-video' : ''}`}>
-          <video ref={videoRef} autoPlay muted className="w-full h-full object-cover rounded-lg" />
+        <div
+          className={`relative w-full ${isLarge ? 'aspect-video' : ''}`}
+          style={{ minHeight: '240px', background: '#222' }}
+        >
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            className="w-full h-full object-cover rounded-lg"
+            style={{ minHeight: '240px', background: '#222' }}
+          />
           {cameraError && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 text-white text-lg font-semibold rounded-lg z-10">
               {cameraError}
